@@ -48,3 +48,4 @@ async def latency_metrics(request: Request):
         }
 
     return result
+handler = app
