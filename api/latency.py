@@ -1,11 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import numpy as np
 import json
+import numpy as np
 
 app = FastAPI()
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,37 +12,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load telemetry data safely
-try:
-    with open("telemetry.json", "r") as f:
-        data = json.load(f)
-except Exception as e:
-    data = []
-    print("Error loading telemetry.json:", e)
+with open("telemetry.json") as f:
+    telemetry = json.load(f)
 
-
-@app.post("/latency")
-async def latency(request: Request):
+@app.post("/")
+async def latency_metrics(request: Request):
     body = await request.json()
-    regions = body.get("regions", [])
-    threshold = body.get("threshold_ms", 180)
+    regions = body["regions"]
+    threshold = body["threshold_ms"]
 
-    results = {}
+    result = {}
 
     for region in regions:
-        region_data = [r for r in data if r.get("region") == region]
+        records = [r for r in telemetry if r["region"] == region]
 
-        if not region_data:
-            continue
+        latencies = [r["latency_ms"] for r in records]
+        uptimes = [r["uptime"] for r in records]
 
-        latencies = [r["latency_ms"] for r in region_data]
-        uptimes = [r["uptime_pct"] for r in region_data]
-
-        results[region] = {
+        result[region] = {
             "avg_latency": float(np.mean(latencies)),
             "p95_latency": float(np.percentile(latencies, 95)),
             "avg_uptime": float(np.mean(uptimes)),
-            "breaches": sum(1 for l in latencies if l > threshold)
+            "breaches": sum(1 for l in latencies if l > threshold),
         }
 
-    return results
+    return result
