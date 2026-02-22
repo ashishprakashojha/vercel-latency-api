@@ -18,8 +18,7 @@ telemetry_path = os.path.join(os.path.dirname(__file__), "..", "telemetry.json")
 with open(telemetry_path) as f:
     telemetry = json.load(f)
 
-
-@app.post("/api/latency")
+@app.post("/")
 async def latency_metrics(body: dict):
     regions = body.get("regions", [])
     threshold = body.get("threshold_ms", 0)
@@ -43,4 +42,3 @@ async def latency_metrics(body: dict):
         }
 
     return result
-handler = app
