@@ -36,8 +36,8 @@ async def latency(request: Request):
         if not region_data:
             continue
 
-        latencies = [r.get("latency_ms", 0) for r in region_data]
-        uptimes = [r.get("uptime", 0) for r in region_data]
+        latencies = [r["latency_ms"] for r in region_data]
+        uptimes = [r["uptime_pct"] for r in region_data]
 
         results[region] = {
             "avg_latency": float(np.mean(latencies)),
