@@ -21,7 +21,7 @@ DATA_PATH = os.path.join(BASE_DIR, "..", "q-vercel-latency.json")
 with open(DATA_PATH, "r") as f:
     data = json.load(f)
 
-@app.post("/api/latency")
+@app.post("/latency")
 async def latency(request: Request):
     body = await request.json()
     regions = body.get("regions", [])
