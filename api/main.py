@@ -2,10 +2,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import json
-import os
 
 app = FastAPI()
 
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,11 +13,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "..", "telemetry.json")
+# Load telemetry data safely
+try:
+    with open("telemetry.json", "r") as f:
+        data = json.load(f)
+except Exception as e:
+    data = []
+    print("Error loading telemetry.json:", e)
 
-with open(DATA_PATH, "r") as f:
-    data = json.load(f)
 
 @app.post("/latency")
 async def latency(request: Request):
@@ -28,13 +31,13 @@ async def latency(request: Request):
     results = {}
 
     for region in regions:
-        region_data = [r for r in data if r["region"] == region]
+        region_data = [r for r in data if r.get("region") == region]
 
         if not region_data:
             continue
 
-        latencies = [r["latency_ms"] for r in region_data]
-        uptimes = [r["uptime"] for r in region_data]
+        latencies = [r.get("latency_ms", 0) for r in region_data]
+        uptimes = [r.get("uptime", 0) for r in region_data]
 
         results[region] = {
             "avg_latency": float(np.mean(latencies)),
