@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import numpy as np
@@ -6,39 +6,34 @@ import os
 
 app = FastAPI()
 
-# Enable CORS for all origins and POST requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load telemetry data
 telemetry_path = os.path.join(os.path.dirname(__file__), "..", "telemetry.json")
 
-with open(telemetry_path, "r") as f:
+with open(telemetry_path) as f:
     telemetry = json.load(f)
 
 
-@app.post("")
-async def latency_metrics(request: Request):
-    body = await request.json()
-
+@app.post("/api/latency")
+async def latency_metrics(body: dict):
     regions = body.get("regions", [])
     threshold = body.get("threshold_ms", 0)
 
     result = {}
 
     for region in regions:
-        records = [r for r in telemetry if r.get("region") == region]
+        records = [r for r in telemetry if r["region"] == region]
 
         if not records:
             continue
 
-        latencies = [r.get("latency_ms", 0) for r in records]
-        uptimes = [r.get("uptime", 0) for r in records]
+        latencies = [r["latency_ms"] for r in records]
+        uptimes = [r["uptime"] for r in records]
 
         result[region] = {
             "avg_latency": float(np.mean(latencies)),
