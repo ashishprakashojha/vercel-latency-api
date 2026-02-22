@@ -47,3 +47,7 @@ async def latency(request: Request):
         }
 
     return results
+
+@app.get("/")
+def root():
+    return {"status": "working"}
